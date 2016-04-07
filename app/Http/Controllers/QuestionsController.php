@@ -10,7 +10,7 @@ class QuestionsController extends Controller {
 	public function index() {
 		$questions = Question::all();
 		return Response::json([
-			'data' => $this->transformCollection($questions),
+			'question' => $this->transformCollection($questions),
 		], 200);
 	}
 
@@ -25,23 +25,30 @@ class QuestionsController extends Controller {
 		}
 
 		return Response::json([
-			'data' => $this->transform($question),
+			'question' => $this->transformQuestion($question),
+			'answers' => $this->transformAnswers($question->answers->toArray()),
 		], 200);
 	}
 
 	private function transformCollection($questions) {
-		return array_map([$this, 'transform'], $questions->toArray());
+		return array_map([$this, 'transformQuestion'], $questions->toArray());
 	}
 
-	private function transform($question) {
-		foreach ($question->answers as $index => $answer) {
-			$choice[] = array('index' => $index,
-				'choice' => $answer['answer_content']);
-		}
+	private function transformQuestion($question) {
 		return [
 			'question_id' => $question['id'],
 			'question' => $question['question_content'],
-			'answers' => $choice,
 		];
+	}
+
+	private function transformAnswers($answers) {
+		$answersArray = array();
+		foreach ($answers as $key => $value) {
+			$answersArray[] = [
+				'answer_id' => $value['id'],
+				'answer_choice' => $value['answer_content'],
+			];
+		}
+		return $answersArray;
 	}
 }
